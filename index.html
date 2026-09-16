@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sahabat Jiwa — Konselor Otomatis untuk Murid</title>
+<!--
+  ===================================================================
+  SAHABAT JIWA — Aplikasi Konseling Murid Otomatis
+  Versi 2.0 — dengan input nama & cetak PDF
+  -------------------------------------------------------------------
+  Cara upload ke GitHub:
+  1. Buat repository baru (mis. "sahabat-jiwa").
+  2. Upload file ini dengan nama "index.html".
+  3. Masuk Settings > Pages > Source: branch "main", folder "/ (root)".
+  4. Tunggu 1-2 menit, situs aktif di https://username.github.io/sahabat-jiwa/
+  -------------------------------------------------------------------
+  Dasar teori yang digunakan:
+  - Cognitive Behavioral Therapy (Aaron Beck, Albert Ellis)
+  - Cognitive Triad & Distorsi Kognitif (Beck)
+  - Positive Psychology & Broaden-and-Build (Seligman, Fredrickson)
+  - Self-Determination Theory (Deci & Ryan)
+  - Growth Mindset (Carol Dweck)
+  - Attachment Theory (John Bowlby)
+  - Psychosocial Development (Erik Erikson)
+  - Burnout & Kelelahan Emosional (Christina Maslach)
+  - Self-Compassion (Kristin Neff)
+  - Self-Efficacy (Albert Bandura)
+  - Komunikasi Keluarga (Virginia Satir)
+  - Kriteria diagnostik DSM-5 & PHQ-9 (untuk skrining, bukan diagnosis)
+  ===================================================================
+-->
+<style>
+  :root{
+    --primary:#5b6cff;
+    --primary-dark:#4353e0;
+    --accent:#ff7aa2;
+    --bg1:#eef1ff;
+    --bg2:#fdeef5;
+    --text:#1f2440;
+    --muted:#6b7192;
+    --ok:#22c55e;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+    --card:#ffffff;
+    --line:#e7e9f5;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+    background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    color:var(--text);
+    line-height:1.65;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 70px;
+  }
+  .app{width:100%;max-width:760px}
+
+  /* ---------- HEADER ---------- */
+  .brand{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:18px;padding:0 4px;
+  }
+  .brand .logo{
+    width:46px;height:46px;border-radius:14px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;box-shadow:0 8px 20px rgba(91,108,255,.35);
+  }
+  .brand h1{font-size:19px;font-weight:700;letter-spacing:-.3px}
+  .brand p{font-size:12.5px;color:var(--muted)}
+
+  /* ---------- CARD ---------- */
+  .card{
+    background:var(--card);
+    border-radius:24px;
+    padding:30px 28px;
+    box-shadow:0 18px 50px rgba(60,70,130,.10), 0 2px 8px rgba(60,70,130,.05);
+    border:1px solid rgba(255,255,255,.8);
+    animation:pop .35s ease;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+  h2.title{font-size:22px;font-weight:700;margin-bottom:10px;letter-spacing:-.4px}
+  .lead{color:var(--muted);font-size:14.5px}
+
+  /* ---------- START SCREEN ---------- */
+  .info-list{list-style:none;margin:20px 0}
+  .info-list li{
+    display:flex;gap:11px;align-items:flex-start;
+    font-size:14px;color:#3c4266;padding:9px 0;
+  }
+  .info-list li .ico{flex-shrink:0;font-size:17px;line-height:1.4}
+  .notice{
+    background:#fff8e6;border-left:4px solid var(--warn);
+    border-radius:10px;padding:13px 15px;font-size:13px;
+    color:#7a5a12;margin:18px 0 22px;
+  }
+  .notice strong{color:#5c430c}
+
+  /* ---------- FORM NAMA ---------- */
+  .form-group{margin:22px 0 8px}
+  .form-group label{
+    display:block;font-size:13.5px;font-weight:600;color:#3c4266;
+    margin-bottom:8px;
+  }
+  .form-group label .req{color:var(--danger);margin-left:3px}
+  .form-group input, .form-group select{
+    width:100%;font-family:inherit;font-size:15px;
+    padding:14px 16px;border-radius:14px;
+    border:1.6px solid var(--line);background:#fafbff;
+    color:var(--text);transition:.18s;outline:none;
+  }
+  .form-group input:focus, .form-group select:focus{
+    border-color:var(--primary);background:#fff;
+    box-shadow:0 0 0 3px rgba(91,108,255,.13);
+  }
+  .form-group input.error{border-color:var(--danger);background:#fff5f5}
+  .form-hint{font-size:12px;color:var(--muted);margin-top:6px}
+  .form-error{font-size:12.5px;color:var(--danger);margin-top:6px;display:none;font-weight:600}
+  .form-error.show{display:block}
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:none;cursor:pointer;font-family:inherit;
+    font-size:15px;font-weight:600;
+    padding:14px 26px;border-radius:14px;
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    color:#fff;transition:.2s;box-shadow:0 8px 22px rgba(91,108,255,.32);
+    width:100%;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(91,108,255,.42)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{
+    background:#f2f4ff;color:var(--primary-dark);box-shadow:none;
+    border:1px solid #dfe3ff;
+  }
+  .btn.ghost:hover{background:#e8ebff}
+  .btn.print{
+    background:linear-gradient(135deg,#22c55e,#16a34a);
+    box-shadow:0 8px 22px rgba(34,197,94,.32);
+  }
+  .btn.print:hover{box-shadow:0 12px 28px rgba(34,197,94,.42)}
+  .btn.small{width:auto;padding:10px 20px;font-size:14px}
+
+  /* ---------- PROGRESS ---------- */
+  .progress-wrap{margin-bottom:24px}
+  .progress-top{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12.5px;color:var(--muted);margin-bottom:8px;font-weight:600;
+  }
+  .bar{height:8px;background:#eceefb;border-radius:99px;overflow:hidden}
+  .bar > div{
+    height:100%;width:0%;border-radius:99px;
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    transition:width .35s ease;
+  }
+
+  /* ---------- QUESTION ---------- */
+  .student-tag{
+    font-size:12.5px;color:var(--muted);margin-bottom:10px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .student-tag b{color:var(--primary-dark)}
+  .domain-tag{
+    display:inline-block;font-size:11.5px;font-weight:700;
+    padding:4px 11px;border-radius:99px;margin-bottom:14px;
+    background:#eef1ff;color:var(--primary-dark);letter-spacing:.3px;
+  }
+  .q-text{font-size:18.5px;font-weight:600;line-height:1.5;margin-bottom:22px;letter-spacing:-.2px}
+
+  .options{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    display:flex;align-items:center;gap:13px;
+    padding:14px 17px;border-radius:14px;cursor:pointer;
+    background:#fafbff;border:1.6px solid var(--line);
+    transition:.16s;font-size:14.5px;text-align:left;
+    font-family:inherit;color:var(--text);width:100%;
+  }
+  .opt:hover{border-color:#c3cafc;background:#f4f6ff;transform:translateX(3px)}
+  .opt.sel{border-color:var(--primary);background:#eef1ff;box-shadow:0 0 0 3px rgba(91,108,255,.13)}
+  .opt .dot{
+    width:20px;height:20px;border-radius:50%;
+    border:2px solid #c8cee8;flex-shrink:0;transition:.16s;
+  }
+  .opt.sel .dot{border-color:var(--primary);background:var(--primary);box-shadow:inset 0 0 0 3.5px #fff}
+  .opt .txt{flex:1}
+  .opt .txt b{display:block;font-weight:600;font-size:14.5px}
+  .opt .txt small{color:var(--muted);font-size:12.5px}
+
+  .nav-row{display:flex;gap:12px;margin-top:26px}
+  .nav-row .btn{width:auto;flex:1}
+  .nav-row .btn.back{flex:0 0 auto;padding:14px 20px}
+
+  /* ---------- RESULT ---------- */
+  .print-header{display:none}
+  .crisis{
+    background:#fff1f1;border:2px solid #ffc9c9;border-radius:16px;
+    padding:18px 20px;margin-bottom:22px;animation:pop .4s ease;
+  }
+  .crisis h3{color:#c02626;font-size:16px;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+  .crisis p{font-size:13.5px;color:#8a2b2b;margin-bottom:10px}
+  .crisis ul{margin-left:18px;font-size:13.5px;color:#8a2b2b}
+  .crisis li{margin:5px 0}
+  .crisis a{color:#c02626;font-weight:700}
+
+  .summary{
+    background:linear-gradient(135deg,#f3f5ff,#fdf2f7);
+    border-radius:18px;padding:22px;margin-bottom:24px;
+    border:1px solid #e9ecff;
+  }
+  .summary .score-big{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+  .summary .score-big span{font-size:16px;font-weight:600;color:var(--muted)}
+  .summary .label{font-size:13.5px;color:var(--muted);margin-top:4px}
+  .chip{
+    display:inline-block;padding:6px 14px;border-radius:99px;
+    font-size:13px;font-weight:700;margin-top:12px;
+  }
+  .chip.low{background:#e6f9ee;color:#12805a}
+  .chip.mid{background:#fff5e0;color:#a06408}
+  .chip.high{background:#ffe9e9;color:#c02626}
+
+  .section-title{
+    font-size:15.5px;font-weight:700;margin:28px 0 14px;
+    display:flex;align-items:center;gap:9px;letter-spacing:-.2px;
+  }
+  .section-title::before{
+    content:'';width:4px;height:18px;border-radius:99px;
+    background:linear-gradient(180deg,var(--primary),var(--accent));
+  }
+
+  .domain-row{margin-bottom:16px}
+  .domain-head{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13.5px;font-weight:600;margin-bottom:6px;
+  }
+  .domain-head .lvl{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px}
+  .lvl.low{background:#e6f9ee;color:#12805a}
+  .lvl.mid{background:#fff5e0;color:#a06408}
+  .lvl.high{background:#ffe9e9;color:#c02626}
+  .mini-bar{height:7px;background:#eef0fa;border-radius:99px;overflow:hidden}
+  .mini-bar > div{height:100%;border-radius:99px;transition:width .6s ease}
+  .mini-bar > div.low{background:linear-gradient(90deg,#4ade80,#22c55e)}
+  .mini-bar > div.mid{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+  .mini-bar > div.high{background:linear-gradient(90deg,#fb7185,#ef4444)}
+
+  .feedback{
+    background:#fafbff;border:1px solid var(--line);
+    border-radius:16px;padding:18px 20px;margin-bottom:14px;
+  }
+  .feedback h4{
+    font-size:14.5px;font-weight:700;margin-bottom:9px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .feedback p{font-size:14px;color:#3d4368;margin-bottom:9px}
+  .feedback p:last-child{margin-bottom:0}
+  .feedback .theory{
+    font-size:12px;color:var(--muted);font-style:italic;
+    border-top:1px dashed var(--line);padding-top:9px;margin-top:11px;
+  }
+
+  .tech{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:15px 17px;margin-bottom:10px;
+  }
+  .tech b{font-size:14px;display:block;margin-bottom:4px;color:var(--primary-dark)}
+  .tech span{font-size:13.5px;color:#4a5077}
+
+  .plan{list-style:none;counter-reset:step}
+  .plan li{
+    position:relative;padding-left:38px;margin-bottom:13px;font-size:14px;color:#3d4368;
+  }
+  .plan li::before{
+    counter-increment:step;content:counter(step);
+    position:absolute;left:0;top:0;
+    width:25px;height:25px;border-radius:8px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#fff;font-size:12.5px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+
+  .disclaimer{
+    font-size:12px;color:var(--muted);background:#f7f8fd;
+    border-radius:12px;padding:14px 16px;margin-top:26px;
+    border:1px solid var(--line);
+  }
+
+  .result-meta{
+    font-size:12.5px;color:var(--muted);text-align:center;
+    margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed var(--line);
+  }
+
+  .footer{
+    text-align:center;font-size:12px;color:var(--muted);
+    margin-top:26px;padding:0 10px;
+  }
+  .footer a{color:var(--primary-dark);text-decoration:none;font-weight:600}
+
+  @media(max-width:520px){
+    .card{padding:24px 19px;border-radius:20px}
+    .q-text{font-size:17px}
+    h2.title{font-size:19.5px}
+    .brand h1{font-size:17px}
+    .summary .score-big{font-size:32px}
+    .nav-row{flex-wrap:wrap}
+  }
+
+  /* =================================================================
+     PRINT / PDF STYLES
+     ================================================================= */
+  @media print{
+    @page{
+      size:A4;
+      margin:14mm 12mm 16mm 12mm;
+    }
+    html, body{
+      background:#fff !important;
+      padding:0 !important;
+      display:block !important;
+      font-size:11.5pt;
+      color:#111 !important;
+      line-height:1.5;
+    }
+    .app{max-width:100% !important;width:100% !important}
+    .brand, .footer, .btn, .nav-row, .crisis .btn{display:none !important}
+    .card{
+      box-shadow:none !important;
+      border:none !important;
+      border-radius:0 !important;
+      padding:0 !important;
+      animation:none !important;
+      background:#fff !important;
+    }
+    /* Header khusus cetak */
+    .print-header{
+      display:block !important;
+      text-align:center;
+      border-bottom:3px double #4353e0;
+      padding-bottom:10px;
+      margin-bottom:18px;
+    }
+    .print-header h1{
+      font-size:19pt;
+      color:#4353e0;
+      letter-spacing:-.4px;
+      margin-bottom:2px;
+    }
+    .print-header .subtitle{
+      font-size:9.5pt;color:#666;
+    }
+    .print-header .student-info{
+      margin-top:10px;font-size:11pt;
+    }
+    .print-header .student-info b{color:#222}
+
+    .result-meta{
+      background:#f4f6ff;
+      padding:8px 12px;
+      border-radius:6px;
+      border:none;
+      margin-bottom:14px;
+      font-size:9.5pt;
+      text-align:left;
+    }
+    .summary{
+      background:#f4f6ff !important;
+      border:1px solid #ccd2ee !important;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+      page-break-inside:avoid;
+      padding:14px 18px;
+    }
+    .summary .score-big{font-size:26pt}
+    .chip, .lvl{
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .crisis{
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+      page-break-inside:avoid;
+      border:2px solid #c02626 !important;
+      background:#fff1f1 !important;
+    }
+    .feedback, .tech, .domain-row, .plan li{
+      page-break-inside:avoid;
+    }
+    .mini-bar, .bar{
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+      border:1px solid #ddd;
+    }
+    .mini-bar > div, .bar > div{
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .section-title{
+      page-break-after:avoid;
+      margin:16px 0 8px;
+      font-size:12pt;
+      border-bottom:1px solid #ddd;
+      padding-bottom:4px;
+    }
+    .section-title::before{display:none}
+    .disclaimer{
+      page-break-inside:avoid;
+      background:#f7f8fd !important;
+      font-size:8.5pt;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+    .theory{font-size:8.5pt}
+    a{color:#222;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="brand">
+    <div class="logo">💙</div>
+    <div>
+      <h1>Sahabat Jiwa</h1>
+      <p>Konselor otomatis untuk kesehatan mental murid</p>
+    </div>
+  </div>
+
+  <div id="screen"></div>
+
+  <div class="footer">
+    Dibuat dengan pendekatan psikologi berbasis bukti &nbsp;•&nbsp; <a href="#top">Kembali ke atas</a>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+   1. DATA: DAFTAR PERTANYAAN
+   ===================================================================== */
+const QUESTIONS = [
+  {id:'q1',  domain:'mood',     text:'Dalam 2 minggu terakhir, seberapa sering kamu merasa sedih, murung, atau ingin menangis tanpa sebab yang jelas?'},
+  {id:'q2',  domain:'mood',     text:'Seberapa sering kamu kehilangan minat atau rasa senang terhadap hal yang biasanya kamu nikmati (hobi, musik, bermain, game)?'},
+  {id:'q3',  domain:'mood',     text:'Seberapa sering kamu merasa lelah, lemas, atau tidak punya energi meski sudah cukup istirahat?'},
+  {id:'q4',  domain:'mood',     text:'Seberapa sering kamu merasa tidak berharga, merasa gagal, atau menyalahkan diri sendiri secara berlebihan?'},
+
+  {id:'q5',  domain:'anxiety',  text:'Seberapa sering kamu merasa gugup, gelisah, atau tegang tanpa alasan yang jelas?'},
+  {id:'q6',  domain:'anxiety',  text:'Seberapa sulit bagimu untuk menghentikan atau mengendalikan rasa khawatir yang terus muncul?'},
+  {id:'q7',  domain:'anxiety',  text:'Seberapa sering kamu merasakan gejala fisik saat cemas — jantung berdebar, tangan berkeringat, napas pendek, atau perut mulas?'},
+
+  {id:'q8',  domain:'academic', text:'Seberapa sering kamu merasa terbebani atau kewalahan dengan tugas, ulangan, dan tuntutan sekolah?'},
+  {id:'q9',  domain:'academic', text:'Seberapa sering kamu menunda belajar atau tugas sampai menumpuk, lalu akhirnya panik sendiri?'},
+  {id:'q10', domain:'academic', text:'Seberapa sering kamu merasa takut mengecewakan orang tua atau guru karena nilai dan prestasimu?'},
+
+  {id:'q11', domain:'social',   text:'Seberapa sering kamu merasa kesepian, terasing, atau merasa tidak punya tempat untuk bercerita?'},
+  {id:'q12', domain:'social',   text:'Seberapa sulit bagimu untuk memulai percakapan, bergaul, atau merasa nyaman di lingkungan baru?'},
+  {id:'q13', domain:'social',   text:'Seberapa sering kamu mengalami perundungan — diejek, dikucilkan, dipukul, atau dilecehkan lewat media sosial?'},
+
+  {id:'q14', domain:'family',   text:'Seberapa sering terjadi pertengkaran, ketegangan, atau komunikasi yang dingin di rumahmu?'},
+  {id:'q15', domain:'family',   text:'Seberapa sering kamu merasa tidak didengar, tidak dipahami, atau diabaikan oleh keluargamu?'},
+
+  {id:'q16', domain:'esteem',   text:'Seberapa sering kamu merasa tidak percaya diri atau merasa tidak mampu dibandingkan orang lain?'},
+  {id:'q17', domain:'esteem',   text:'Seberapa sering kamu membandingkan dirimu dengan teman (nilai, penampilan, media sosial) dan merasa kalah?'},
+  {id:'q18', domain:'esteem',   text:'Seberapa sulit bagimu untuk berkata "tidak" atau menolak permintaan orang lain karena takut tidak disukai?'},
+
+  {id:'q19', domain:'sleep',    text:'Seberapa sering kamu sulit tidur, sering terbangun tengah malam, atau tidur tidak nyenyak?'},
+  {id:'q20', domain:'sleep',    text:'Seberapa sering pola tidurmu kacau — begadang berlebihan atau tidur terlalu banyak hingga mengganggu aktivitas?'},
+
+  {id:'q21', domain:'critical', critical:true,
+   text:'Dalam 2 minggu terakhir, seberapa sering muncul pikiran untuk menyakiti diri sendiri atau mengakhiri hidup?'}
+];
+
+const OPTIONS = [
+  {v:0, label:'Tidak pernah',              desc:'0 hari dalam 2 minggu terakhir'},
+  {v:1, label:'Beberapa hari',             desc:'1–5 hari'},
+  {v:2, label:'Lebih dari separuh waktu',  desc:'6–11 hari'},
+  {v:3, label:'Hampir setiap hari',        desc:'12–14 hari'}
+];
+
+const DOMAIN_META = {
+  mood:     {label:'Suasana Hati & Depresi',      icon:'🌧️'},
+  anxiety:  {label:'Kecemasan',                   icon:'💓'},
+  academic: {label:'Stres Akademik',              icon:'📚'},
+  social:   {label:'Relasi Sosial & Perundungan', icon:'🤝'},
+  family:   {label:'Lingkungan Keluarga',         icon:'🏠'},
+  esteem:   {label:'Harga Diri',                  icon:'🪞'},
+  sleep:    {label:'Tidur & Energi',              icon:'🌙'}
+};
+
+/* =====================================================================
+   2. BANK JAWABAN KONSELING
+   ===================================================================== */
+const RESPONSES = {
+  mood: {
+    low: [
+      'Suasana hatimu saat ini tergolong stabil. Dalam kerangka <b>cognitive triad</b> Aaron Beck, cara kamu memandang diri, dunia, dan masa depan berada dalam keseimbangan yang sehat. Menurut <b>broaden-and-build theory</b> (Fredrickson), emosi positif seperti ini memperluas cara berpikir dan membangun ketahanan psikologis untuk menghadapi tekanan di masa depan. Rawatlah dengan tidur cukup, aktivitas bermakna, dan hubungan sosial yang hangat.',
+      'Kamu menunjukkan kondisi emosi yang cukup sehat. Riset psikologi positif menunjukkan bahwa rutinitas kecil — olahraga ringan, menulis jurnal syukur, dan berbincang dengan orang yang dipercaya — secara signifikan menjaga stabilitas mood (Seligman). Pertahankan ritme ini dan jadikan ia sebagai "benteng" saat hari-hari sulit datang.'
+    ],
+    mid: [
+      'Kamu melaporkan adanya gejala suasana hati yang menurun. Dalam <b>DSM-5</b>, mood tertekan yang berlangsung hampir sepanjang hari selama ≥2 minggu memang perlu diperhatikan. Namun penting diingat: ini bukan tanda kamu lemah atau cengeng. Menurut <b>teori kognitif Beck</b>, depresi sering berawal dari <i>distorsi pikiran</i> — misalnya "semua ini salahku" atau "tidak ada yang peduli" — yang perlahan mengubah cara otak memproses informasi. Langkah pertama adalah mengenali pikiran otomatis negatif itu dan mengujinya dengan bukti nyata.',
+      'Skormu menunjukkan penurunan suasana hati pada tingkat ringan–sedang. Martin Seligman menjelaskan bahwa kondisi ini sering muncul ketika tiga kebutuhan psikologis — <b>makna, keterhubungan, dan pencapaian</b> — tidak terpenuhi. Coba identifikasi: aktivitas apa yang terakhir kali benar-benar membuatmu merasa hidup? Teknik <b>behavioral activation</b> (melakukan kegiatan kecil yang bermakna tanpa menunggu mood membaik) terbukti seefektif terapi bicara untuk depresi ringan.'
+    ],
+    high: [
+      'Skormu menunjukkan gejala depresi yang cukup kuat dan berlangsung terus-menerus. Ini bukan sesuatu yang bisa kamu "tahan sendiri" — sama seperti demam tinggi, ia butuh penanganan. Menurut Beck, depresi berat membuat otak secara otomatis menyaring hal-hal positif dan hanya melihat sisi gelap. Karena itu, perasaan "semuanya tidak ada harapan" saat ini <b>bukanlah kebenaran, melainkan gejala</b>. Sangat disarankan kamu segera bercerita kepada guru BK, orang tua, atau psikolog sekolah.',
+      'Hasilmu mengarah pada gejala depresi tingkat tinggi. Aaron Beck dan Albert Ellis menekankan bahwa pikiran seperti "aku tidak berguna" atau "tidak akan pernah membaik" adalah <b>distorsi kognitif</b>, bukan fakta. Namun untuk kondisi sekuat ini, dukungan profesional bukan lagi pilihan, melainkan kebutuhan. Psikoterapi (CBT) dan, bila perlu, penanganan medis oleh psikiater memiliki tingkat keberhasilan yang tinggi. Kamu berhak untuk sembuh dan dibantu.'
+    ]
+  },
+  anxiety: {
+    low: [
+      'Tingkat kecemasanmu masih dalam batas wajar. Dalam <b>hukum Yerkes-Dodson</b>, sedikit kecemasan justru meningkatkan performa — ia membuat kita waspada dan siap. Yang penting adalah menjaga agar tidak melewati titik optimalnya.',
+      'Kamu cukup mampu mengelola rasa khawatir. Ini menandakan regulasi emosi yang baik, sesuai konsep <b>emotion regulation</b> dari James Gross — kemampuan memilih strategi menghadapi situasi yang menekan.'
+    ],
+    mid: [
+      'Kecemasanmu berada di tingkat sedang. Menurut model kognitif Clark & Beck, kecemasan dipelihara oleh <b>penghindaran</b> — semakin kita menghindari hal yang ditakuti, semakin besar rasa takut itu. Coba latih teknik pernapasan <b>4-7-8</b> (tarik 4 detik, tahan 7 detik, buang 8 detik) atau <b>grounding 5-4-3-2-1</b> saat gejala muncul.',
+      'Kamu mengalami kecemasan yang cukup mengganggu. Teori <b>Generalized Anxiety</b> menjelaskan bahwa kekhawatiran berlebihan sebenarnya berfungsi sebagai "strategi" untuk merasa aman, padahal ia justru menambah beban mental. Latihan <b>worry time</b> — menunda semua kekhawatiran ke satu waktu khusus 15 menit per hari — terbukti efektif menurunkan kecemasan kronis.'
+    ],
+    high: [
+      'Tingkat kecemasanmu tinggi dan kemungkinan sudah berdampak pada tubuh serta konsentrasimu. Kecemasan kronis mengaktifkan <b>sistem saraf simpatis</b> terus-menerus (respons fight-or-flight), sehingga tubuh kelelahan meski kamu tidak beraktivitas berat. Ini bukan sesuatu yang bisa dipaksakan hilang; kamu butuh bantuan untuk memutus siklusnya.',
+      'Skormu menunjukkan kecemasan yang sangat kuat. Dalam perspektif neurosains, amigdala yang terlalu aktif membuat otak "sulit berpikir jernih" — itulah sebabnya kamu mungkin merasa blank saat ujian. Pendekatan yang disarankan adalah <b>CBT, terapi eksposur bertahap, dan relaksasi otot progresif</b>, sebaiknya didampingi psikolog.'
+    ]
+  },
+  academic: {
+    low: [
+      'Kamu tampaknya cukup mampu mengelola tuntutan akademik. Ini sejalan dengan teori <b>self-efficacy</b> Albert Bandura — keyakinan akan kemampuan diri membuat tantangan terasa lebih bisa diatasi.',
+      'Beban akademik masih terasa terkendali bagimu. Pertahankan kebiasaan belajar teratur. Menurut riset <b>spaced repetition</b> (Ebbinghaus), belajar 30 menit setiap hari jauh lebih efektif daripada 4 jam sekali seminggu.'
+    ],
+    mid: [
+      'Kamu merasakan tekanan akademik yang cukup berarti. <b>Teori expectancy-value</b> menjelaskan bahwa stres belajar sering muncul bukan karena tugasnya berat, tetapi karena kita merasa "tidak akan mampu". Pecah tugas besar menjadi langkah kecil 15 menit (teknik <b>Pomodoro</b>) untuk mengurangi rasa kewalahan.',
+      'Ada indikasi stres akademik tingkat sedang. Carol Dweck membedakan <b>growth mindset</b> dan <b>fixed mindset</b>: murid dengan growth mindset melihat nilai jelek sebagai informasi, bukan vonis. Coba ubah kalimat "aku bodoh" menjadi "aku belum menguasai bagian ini".'
+    ],
+    high: [
+      'Tekanan akademik yang kamu rasakan sudah sangat tinggi dan berisiko berubah menjadi <b>burnout</b>. Christina Maslach mendefinisikannya sebagai kelelahan emosional, sinisme, dan menurunnya rasa mampu. Ini bukan malas — ini tanda kapasitasmu sedang dilampaui. Kamu perlu berbicara dengan guru BK atau wali kelas tentang penyesuaian beban.',
+      'Kamu berada di bawah tekanan akademik yang berat. Ketika tuntutan melebihi sumber daya, tubuh masuk ke mode bertahan: sulit fokus, mudah marah, dan kehilangan motivasi. Menurut <b>Self-Determination Theory</b> (Deci & Ryan), motivasi belajar hanya tumbuh bila ada <b>otonomi, kompetensi, dan keterhubungan</b>. Diskusikan dengan gurumu bagaimana belajar bisa terasa lebih bermakna, bukan sekadar mengejar nilai.'
+    ]
+  },
+  social: {
+    low: [
+      'Hubungan sosialmu tergolong sehat. Menurut <b>attachment theory</b> (Bowlby), rasa aman dalam relasi adalah fondasi kesehatan mental. Hubungan pertemanan yang baik bahkan terbukti memperpanjang harapan hidup lebih kuat daripada olahraga.',
+      'Kamu memiliki koneksi sosial yang cukup baik. Keterhubungan adalah salah satu dari tiga kebutuhan dasar psikologis (Deci & Ryan). Rawatlah hubungan-hubungan ini — mereka adalah jaring pengaman saat kamu jatuh.'
+    ],
+    mid: [
+      'Kamu mengalami beberapa kesulitan sosial. Keterampilan sosial bukan bakat bawaan, melainkan hal yang bisa dilatih (<b>social learning theory</b>, Bandura). Mulailah dari percakapan kecil dengan satu orang yang kamu rasa aman.',
+      'Ada rasa kesepian atau kecanggungan dalam pergaulanmu. Riset menunjukkan kesepian kronis memiliki dampak kesehatan setara merokok 15 batang sehari. Cobalah bergabung dengan satu kegiatan atau klub sesuai minatmu — pertemanan lebih mudah tumbuh dari aktivitas bersama.'
+    ],
+    high: [
+      'Kamu mengalami kesulitan sosial yang berat. Jika ini terkait perundungan, ketahuilah: <b>perundungan bukan salahmu</b>, dan dampaknya pada kesehatan mental (kecemasan, depresi, rendahnya harga diri) sudah terdokumentasi luas. Ini harus dilaporkan kepada guru BK, guru kelas, atau orang tua. Kamu berhak merasa aman di sekolah.',
+      'Skormu menunjukkan penderitaan sosial yang tinggi, kemungkinan akibat isolasi atau perundungan. Erik Erikson menyebut masa remaja sebagai tahap kritis pembentukan identitas (<i>identity vs role confusion</i>). Pengalaman dikucilkan pada masa ini bisa membekas lama — karena itu jangan hadapi sendiri. Ceritakan pada orang dewasa yang kamu percaya.'
+    ]
+  },
+  family: {
+    low: [
+      'Lingkungan keluargamu tergolong suportif. Menurut <b>attachment theory</b>, hubungan aman dengan figur pengasuh membentuk kemampuan mengelola emosi sepanjang hidup.',
+      'Keluargamu tampaknya menjadi tempat yang cukup aman. Ini modal besar, karena dukungan keluarga adalah prediktor terkuat ketahanan remaja terhadap stres.'
+    ],
+    mid: [
+      'Ada ketegangan atau jarak komunikasi di rumah. Virginia Satir, tokoh terapi keluarga, menekankan bahwa <b>masalah komunikasi lebih sering menjadi akar konflik</b> daripada masalahnya sendiri. Coba gunakan kalimat "saya merasa..." daripada "kamu selalu...".',
+      'Kamu merasakan kurangnya kehangatan atau pemahaman dari keluarga. Dalam teori sistem keluarga, setiap anggota saling memengaruhi. Satu percakapan jujur bisa mengubah dinamika — namun jika suasana belum aman, guru BK bisa menjadi penengah.'
+    ],
+    high: [
+      'Konflik atau pengabaian dalam keluargamu cukup berat. Perlu kamu tahu: lingkungan rumah yang penuh tekanan dapat memicu <b>stres kronis</b> pada remaja, termasuk perubahan mood dan kesulitan tidur. Ini bukan salahmu, dan kamu tidak harus menanggungnya sendiri.',
+      'Kamu menghadapi tekanan keluarga yang sangat tinggi. Jika ada kekerasan fisik, verbal, atau emosional di rumah, itu melanggar hakmu sebagai anak. Segera hubungi guru BK, atau layanan pengaduan seperti <b>SAPA 129</b> dan <b>KPAI</b>.'
+    ]
+  },
+  esteem: {
+    low: [
+      'Harga dirimu tergolong sehat. Dalam teori <b>self-concept</b> Carl Rogers, kamu tampaknya menerima dirimu apa adanya (<i>unconditional positive self-regard</i>), yang merupakan fondasi pertumbuhan pribadi.',
+      'Kamu cukup menghargai dirimu sendiri. Ini penting, karena harga diri yang sehat berkorelasi dengan prestasi akademik, kesehatan mental, dan kualitas hubungan sosial.'
+    ],
+    mid: [
+      'Kamu cenderung meragukan dirimu sendiri. Albert Ellis menyebut ini <b>irrational beliefs</b> — keyakinan seperti "aku harus sempurna agar diterima". Uji keyakinan itu: benarkah orang hanya menghargaimu ketika kamu sempurna?',
+      'Harga dirimu sedang terguncang, mungkin karena kebiasaan membandingkan diri. Riset menunjukkan <b>perbandingan sosial di media sosial</b> berkorelasi kuat dengan gejala depresi pada remaja. Ingat: yang kamu lihat di layar adalah <i>highlight</i>, bukan kehidupan utuh seseorang.'
+    ],
+    high: [
+      'Harga dirimu sangat rendah dan ini berdampak besar. Dalam CBT dikenal <b>core beliefs</b> negatif seperti "aku tidak berharga" yang terbentuk dari pengalaman masa lalu — bukan dari kenyataan objektif. Core beliefs bisa diubah, tetapi biasanya butuh pendampingan profesional.',
+      'Kamu sangat keras terhadap dirimu sendiri. Kristin Neff, peneliti <b>self-compassion</b>, menemukan bahwa memarahi diri sendiri tidak meningkatkan performa — yang berhasil justru memperlakukan diri seperti sahabat sendiri. Mulailah dengan satu kalimat: "Aku sedang berjuang, dan itu manusiawi."'
+    ]
+  },
+  sleep: {
+    low: [
+      'Pola tidurmu tergolong baik. Tidur adalah proses konsolidasi memori dan pembersihan racun otak (<i>glymphatic system</i>). Menjaga 7–9 jam tidur adalah investasi kesehatan mental paling murah.',
+      'Kualitas tidurmu cukup sehat. Riset menunjukkan kurang tidur meningkatkan risiko depresi hingga dua kali lipat pada remaja.'
+    ],
+    mid: [
+      'Ada gangguan tidur pada tingkat sedang. <b>Sleep hygiene</b> terbukti membantu: hindari layar 1 jam sebelum tidur (cahaya biru menekan melatonin), jaga jam tidur–bangun yang konsisten, dan jangan gunakan kasur untuk belajar.',
+      'Tidurmu mulai terganggu. Gangguan tidur sering menjadi gejala awal sekaligus pemicu gangguan mood — hubungan dua arah ini disebut <b>bidirectional</b>. Coba relaksasi sebelum tidur dan kurangi kafein setelah pukul 2 siang.'
+    ],
+    high: [
+      'Gangguan tidurmu berat dan hampir pasti memperburuk kondisi emosimu. Matthew Walker, ahli neurosains tidur, menyatakan tidak ada satu pun fungsi biologis yang tidak dirugikan oleh kurang tidur. Ini perlu dibahas dengan tenaga kesehatan.',
+      'Skormu menunjukkan masalah tidur yang serius. Pada remaja, jam biologis memang bergeser (<i>delayed sleep phase</i>), tetapi gangguan sebesar ini bisa menjadi gejala depresi atau kecemasan yang perlu dievaluasi profesional.'
+    ]
+  }
+};
+
+/* =====================================================================
+   3. TEKNIK PRAKTIS
+   ===================================================================== */
+const TECHNIQUES = {
+  mood: [
+    {name:'Behavioral Activation', desc:'Lakukan satu aktivitas kecil yang dulu kamu nikmati, tanpa menunggu mood membaik. Aksi dulu, perasaan menyusul.'},
+    {name:'Thought Record (Jurnal Pikiran)', desc:'Tulis pikiran negatif, lalu tulis bukti yang mendukung dan yang membantahnya. Latihan inti CBT.'},
+    {name:'Jurnal Syukur', desc:'Tulis 3 hal baik setiap malam selama 2 minggu. Terbukti secara ilmiah meningkatkan mood dan kualitas tidur.'}
+  ],
+  anxiety: [
+    {name:'Pernapasan 4-7-8', desc:'Tarik napas 4 detik, tahan 7 detik, buang perlahan 8 detik. Ulangi 4 siklus. Menenangkan sistem saraf parasimpatis.'},
+    {name:'Grounding 5-4-3-2-1', desc:'Sebutkan 5 hal yang kamu lihat, 4 yang kamu sentuh, 3 yang kamu dengar, 2 yang kamu cium, 1 yang kamu rasakan. Mengembalikanmu ke saat ini.'},
+    {name:'Worry Time', desc:'Sediakan 15 menit khusus setiap hari untuk mengkhawatirkan segala hal. Di luar waktu itu, tunda kekhawatiran.'}
+  ],
+  academic: [
+    {name:'Teknik Pomodoro', desc:'Belajar 25 menit, istirahat 5 menit. Setelah 4 siklus, istirahat 20 menit. Melatih fokus tanpa kelelahan.'},
+    {name:'Pecah Tugas Besar', desc:'Bagi tugas menjadi langkah 15 menit. Otak lebih mudah memulai hal kecil daripada tugas raksasa.'},
+    {name:'Aturan 2 Menit', desc:'Jika sesuatu bisa diselesaikan dalam 2 menit, kerjakan sekarang. Menghentikan penundaan sejak awal.'}
+  ],
+  social: [
+    {name:'Latihan Percakapan Kecil', desc:'Setiap hari, ajak satu orang bicara satu kalimat (mis. "tugasnya susah ya?"). Keterampilan sosial tumbuh dari repetisi.'},
+    {name:'Bergabung Satu Komunitas', desc:'Pilih satu ekstrakurikuler atau klub sesuai minat. Pertemanan paling mudah tumbuh dari aktivitas bersama.'},
+    {name:'Batasan Digital', desc:'Kurangi membandingkan diri di media sosial. Unfollow akun yang membuatmu merasa kecil.'}
+  ],
+  family: [
+    {name:'Komunikasi "Saya Merasa..."', desc:'Ubah "Ayah tidak pernah peduli" menjadi "Saya merasa sedih ketika tidak ditanya soal sekolah". Mengurangi sikap defensif.'},
+    {name:'Waktu Bicara Terjadwal', desc:'Minta 15 menit waktu tenang untuk bicara berdua tanpa gangguan HP. Kualitas lebih penting daripada kuantitas.'},
+    {name:'Cari Penengah', desc:'Jika komunikasi langsung sulit, minta bantuan guru BK, wali kelas, atau kerabat yang dipercaya.'}
+  ],
+  esteem: [
+    {name:'Latihan Self-Compassion', desc:'Tulis surat untuk dirimu seperti kamu menulis untuk sahabat terbaikmu. Neff menemukan ini menurunkan kecemasan signifikan.'},
+    {name:'Stop Bandingkan Diri', desc:'Bandingkan dirimu hari ini dengan dirimu bulan lalu — bukan dengan highlight hidup orang lain.'},
+    {name:'Catatan Prestasi Kecil', desc:'Setiap malam, catat 1 hal yang berhasil kamu lakukan hari ini, sekecil apa pun.'}
+  ],
+  sleep: [
+    {name:'Kebersihan Tidur', desc:'Tidur dan bangun di jam yang sama setiap hari, termasuk akhir pekan. Matikan layar 1 jam sebelum tidur.'},
+    {name:'Wind-Down Routine', desc:'30 menit sebelum tidur: cahaya redup, baca buku, peregangan ringan, atau dengarkan musik tenang.'},
+    {name:'Relaksasi Otot Progresif', desc:'Tegangkan lalu lepaskan otot dari kaki hingga wajah secara berurutan. Membantu tubuh masuk mode istirahat.'}
+  ]
+};
+
+/* =====================================================================
+   4. PENUTUP & TINDAK LANJUT
+   ===================================================================== */
+const CLOSING = {
+  low: [
+    'Secara keseluruhan, kondisi mentalmu berada dalam rentang yang sehat. Teruslah merawatnya — kesehatan mental bukan tujuan akhir, melainkan kebiasaan harian. Tetap terbuka pada orang tua, guru, atau teman ketika ada masalah kecil, sebelum ia membesar.',
+    'Kabar baik: hasil keseluruhanmu menunjukkan kondisi yang cukup stabil. Gunakan energi positif ini untuk hal-hal yang bermakna. Dan ingat, meminta bantuan saat sedang sulit bukan tanda lemah, melainkan tanda kedewasaan.'
+  ],
+  mid: [
+    'Secara keseluruhan, kamu sedang menghadapi tekanan yang cukup berarti. Kabar baiknya, pada tahap ini perubahan kecil berdampak besar. Pilih satu atau dua langkah dari daftar di atas, lakukan konsisten selama seminggu, dan evaluasi. Jika dalam 2 minggu kondisinya tidak membaik, jangan ragu menemui guru BK atau psikolog sekolah.',
+    'Hasilmu menunjukkan kamu sedang berjuang dengan beberapa hal sekaligus. Ingat prinsip dalam terapi: kita tidak harus menyelesaikan semuanya sekaligus. Fokus pada satu area yang paling mengganggu, lalu bergerak dari sana. Kamu tidak harus melakukannya sendiri.'
+  ],
+  high: [
+    'Hasil keseluruhanmu menunjukkan tingkat distress yang tinggi. Ini bukan sesuatu yang sebaiknya kamu tanggung sendirian. Langkah paling berani dan paling penting yang bisa kamu lakukan hari ini adalah <b>bercerita kepada satu orang dewasa yang kamu percaya</b> — guru BK, orang tua, wali kelas, atau psikolog. Kamu layak mendapatkan bantuan, dan bantuan itu ada.',
+    'Kondisimu saat ini berat, dan itu terlihat dari jawabanmu. Tolong dengarkan ini baik-baik: <b>penderitaanmu nyata, dan kamu tidak salah karena merasakannya.</b> Tetapi kamu juga tidak perlu menanggungnya sendiri. Hubungi guru BK atau psikolog sekolah minggu ini. Pemulihan itu mungkin — dan dimulai dari satu langkah kecil: meminta tolong.'
+  ]
+};
+
+const FOLLOWUP = {
+  low: [
+    'Lanjutkan kebiasaan baikmu. Lakukan "check-in" dengan diri sendiri setiap minggu: bagaimana perasaanku 7 hari terakhir?',
+    'Ceritakan pada teman atau keluarga bagaimana perasaanmu secara berkala — keterhubungan adalah pelindung terbaik kesehatan mental.'
+  ],
+  mid: [
+    'Jadwalkan sesi dengan guru BK dalam 1–2 minggu ke depan, meskipun hanya untuk berbincang ringan.',
+    'Catat perubahan moodmu setiap hari (skala 1–10) selama 2 minggu. Pola ini akan sangat membantu jika kamu berkonsultasi dengan psikolog.',
+    'Kurangi konsumsi berita/media sosial yang membuatmu cemas, dan tambah waktu tidur 30 menit lebih awal.'
+  ],
+  high: [
+    'Segera hubungi guru BK atau psikolog sekolah minggu ini — jangan menunggu sampai "lebih parah".',
+    'Ceritakan kondisimu kepada orang tua atau anggota keluarga yang kamu percaya.',
+    'Hubungi layanan bantuan psikologis: <b>119 ext. 8</b> (Kemenkes SEJIWA) atau <b>112</b> untuk keadaan darurat.',
+    'Bila muncul dorongan menyakiti diri, jangan sendirian. Dekatkan diri dengan orang lain dan hubungi bantuan segera.'
+  ]
+};
+
+/* =====================================================================
+   5. UTILITAS
+   ===================================================================== */
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const $ = sel => document.querySelector(sel);
+const screenEl = $('#screen');
+
+function levelOf(pct){
+  if (pct < 34) return 'low';
+  if (pct < 67) return 'mid';
+  return 'high';
+}
+const LEVEL_TEXT = {low:'Rendah', mid:'Sedang', high:'Tinggi'};
+
+function escapeHTML(str){
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[s]));
+}
+
+function formatTanggal(d){
+  const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* =====================================================================
+   6. STATE
+   ===================================================================== */
+let idx = 0;
+let answers = {};
+let studentData = {nama:'', kelas:'', sekolah:''};
+
+/* =====================================================================
+   7. HALAMAN PEMBUKA + FORM NAMA
+   ===================================================================== */
+function renderStart(){
+  screenEl.innerHTML = `
+    <div class="card">
+      <h2 class="title">Halo, selamat datang 👋</h2>
+      <p class="lead">Aku <b>Sahabat Jiwa</b>, konselor otomatis yang akan membantumu memahami apa yang sedang kamu rasakan. Isi datamu dulu, lalu jawab 21 pertanyaan singkat — hasilnya bisa dicetak atau disimpan sebagai PDF.</p>
+
+      <div class="form-group">
+        <label for="inputNama">Nama Lengkap <span class="req">*</span></label>
+        <input type="text" id="inputNama" placeholder="Contoh: Aditya Pratama" maxlength="60" autocomplete="name" />
+        <div class="form-error" id="errNama">Mohon isi nama lengkapmu terlebih dahulu.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="inputKelas">Kelas</label>
+        <input type="text" id="inputKelas" placeholder="Contoh: XI IPA 2" maxlength="30" />
+      </div>
+
+      <div class="form-group">
+        <label for="inputSekolah">Asal Sekolah</label>
+        <input type="text" id="inputSekolah" placeholder="Contoh: SMA Negeri 1 Yogyakarta" maxlength="80" />
+        <div class="form-hint">Kelas & sekolah bersifat opsional, tetapi membantu untuk laporan cetak.</div>
+      </div>
+
+      <ul class="info-list" style="margin-top:18px">
+        <li><span class="ico">⏱️</span><span>Waktu pengisian sekitar <b>4–6 menit</b>.</span></li>
+        <li><span class="ico">🔒</span><span>Semua jawabanmu <b>tidak dikirim ke mana pun</b> — diproses langsung di perangkatmu.</span></li>
+        <li><span class="ico">🖨️</span><span>Hasil dapat <b>dicetak atau disimpan sebagai PDF</b> setelah selesai.</span></li>
+        <li><span class="ico">🎯</span><span>Jawablah dengan <b>jujur</b> sesuai yang kamu rasakan 2 minggu terakhir.</span></li>
+      </ul>
+
+      <div class="notice">
+        <strong>⚠️ Penting:</strong> Aplikasi ini adalah alat <b>skrining dan edukasi</b>, bukan pengganti diagnosis atau terapi oleh psikolog/psikiater. Jika kamu berada dalam bahaya atau memiliki pikiran untuk menyakiti diri, segera hubungi orang dewasa terpercaya, guru BK, atau layanan darurat <b>119 ext. 8</b> / <b>112</b>.
+      </div>
+
+      <button class="btn" onclick="startQuiz()">Mulai Konseling &nbsp;→</button>
+    </div>
+  `;
+
+  // Enter pada input nama = lanjut
+  const namaInput = $('#inputNama');
+  if (namaInput){
+    namaInput.focus();
+    namaInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') startQuiz();
+    });
+  }
+}
+
+/* =====================================================================
+   8. ALUR KUIS
+   ===================================================================== */
+function startQuiz(){
+  const nama = ($('#inputNama')?.value || '').trim();
+  const kelas = ($('#inputKelas')?.value || '').trim();
+  const sekolah = ($('#inputSekolah')?.value || '').trim();
+
+  if (!nama){
+    $('#inputNama').classList.add('error');
+    $('#errNama').classList.add('show');
+    $('#inputNama').focus();
+    return;
+  }
+  $('#inputNama')?.classList.remove('error');
+  $('#errNama')?.classList.remove('show');
+
+  studentData = {nama, kelas, sekolah};
+  idx = 0;
+  answers = {};
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[idx];
+  const meta = DOMAIN_META[q.domain];
+  const pct = Math.round((idx / QUESTIONS.length) * 100);
+
+  const optsHTML = OPTIONS.map(o => `
+    <button class="opt ${answers[q.id] === o.v ? 'sel' : ''}" onclick="answer(${o.v})">
+      <span class="dot"></span>
+      <span class="txt"><b>${o.label}</b><small>${o.desc}</small></span>
+    </button>
+  `).join('');
+
+  screenEl.innerHTML = `
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-top">
+          <span>Pertanyaan ${idx + 1} dari ${QUESTIONS.length}</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="bar"><div style="width:${pct}%"></div></div>
+      </div>
+
+      <div class="student-tag">👤 Menjawab sebagai: <b>${escapeHTML(studentData.nama)}</b>${studentData.kelas ? ' • ' + escapeHTML(studentData.kelas) : ''}</div>
+
+      <span class="domain-tag">${meta ? meta.icon + ' ' + meta.label.toUpperCase() : 'PEMERIKSAAN KHUSUS'}</span>
+      <div class="q-text">${q.text}</div>
+
+      <div class="options">${optsHTML}</div>
+
+      <div class="nav-row">
+        ${idx > 0 ? '<button class="btn ghost back" onclick="prevQ()">← Kembali</button>' : ''}
+        <button class="btn ghost" onclick="skipQ()">Lewati</button>
+      </div>
+    </div>
+  `;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function answer(v){
+  const q = QUESTIONS[idx];
+  answers[q.id] = v;
+
+  document.querySelectorAll('.opt').forEach((el, i) => {
+    el.classList.toggle('sel', OPTIONS[i].v === v);
+  });
+
+  setTimeout(() => {
+    if (idx < QUESTIONS.length - 1){
+      idx++;
+      renderQuestion();
+    } else {
+      showResult();
+    }
+  }, 260);
+}
+
+function prevQ(){
+  if (idx > 0){ idx--; renderQuestion(); }
+}
+
+function skipQ(){
+  const q = QUESTIONS[idx];
+  if (answers[q.id] === undefined) answers[q.id] = 0;
+  if (idx < QUESTIONS.length - 1){ idx++; renderQuestion(); }
+  else showResult();
+}
+
+/* =====================================================================
+   9. PERHITUNGAN SKOR
+   ===================================================================== */
+function computeScores(){
+  const sums = {}, counts = {};
+  let critical = 0;
+
+  QUESTIONS.forEach(q => {
+    const v = answers[q.id] !== undefined ? answers[q.id] : 0;
+    if (q.critical){
+      critical = v;
+      return;
+    }
+    sums[q.domain] = (sums[q.domain] || 0) + v;
+    counts[q.domain] = (counts[q.domain] || 0) + 1;
+  });
+
+  const domains = {};
+  let totalPct = 0, n = 0;
+
+  Object.keys(sums).forEach(d => {
+    const pct = (sums[d] / (counts[d] * 3)) * 100;
+    domains[d] = {pct, level: levelOf(pct), sum: sums[d], max: counts[d] * 3};
+    totalPct += pct;
+    n++;
+  });
+
+  const overall = totalPct / n;
+  return {domains, overall, overallLevel: levelOf(overall), critical};
+}
+
+/* =====================================================================
+   10. TAMPILAN HASIL
+   ===================================================================== */
+function showResult(){
+  const {domains, overall, overallLevel, critical} = computeScores();
+  const now = new Date();
+  const tanggal = formatTanggal(now);
+  const jam = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+
+  /* ---- Header cetak ---- */
+  const printHeaderHTML = `
+    <div class="print-header">
+      <h1>💙 Sahabat Jiwa</h1>
+      <div class="subtitle">Laporan Hasil Konseling Otomatis Kesehatan Mental Murid</div>
+      <div class="student-info">
+        <b>Nama:</b> ${escapeHTML(studentData.nama)}
+        ${studentData.kelas ? ' &nbsp;•&nbsp; <b>Kelas:</b> ' + escapeHTML(studentData.kelas) : ''}
+        ${studentData.sekolah ? ' &nbsp;•&nbsp; <b>Sekolah:</b> ' + escapeHTML(studentData.sekolah) : ''}
+      </div>
+    </div>
+  `;
+
+  /* ---- Banner krisis ---- */
+  const crisisHTML = critical > 0 ? `
+    <div class="crisis">
+      <h3>🆘 Kami mendengar kamu — ini butuh perhatian segera</h3>
+      <p>${escapeHTML(studentData.nama)}, kamu menyebutkan adanya pikiran untuk menyakiti diri. Terima kasih sudah jujur — itu membutuhkan keberanian besar. Kondisi seperti ini <b>tidak boleh dihadapi sendirian</b>.</p>
+      <p><b>Segera hubungi salah satu dari ini:</b></p>
+      <ul>
+        <li><b>119 ext. 8</b> — Layanan Kesehatan Jiwa Kemenkes (SEJIWA, 24 jam)</li>
+        <li><b>112</b> — Nomor darurat nasional</li>
+        <li><b>Guru BK / Psikolog sekolah</b> — hari ini atau besok</li>
+        <li><b>Orang tua / keluarga / orang dewasa yang kamu percaya</b></li>
+      </ul>
+      <p style="margin-top:10px">Jika kamu merasa tidak aman saat ini, jangan tinggal sendirian. Dekati seseorang.</p>
+    </div>
+  ` : '';
+
+  /* ---- Ringkasan ---- */
+  const summaryHTML = `
+    <div class="summary">
+      <div class="score-big">${Math.round(overall)}<span>/100</span></div>
+      <div class="label">Indeks Beban Psikologis Keseluruhan</div>
+      <span class="chip ${overallLevel}">Tingkat ${LEVEL_TEXT[overallLevel]}</span>
+      <p style="font-size:13px;color:#5b6188;margin-top:12px">
+        Angka ini menggabungkan seluruh area yang kamu jawab. Semakin tinggi angkanya,
+        semakin besar beban yang sedang kamu bawa — bukan ukuran kelemahanmu.
+      </p>
+    </div>
+  `;
+
+  /* ---- Bar per domain ---- */
+  const barsHTML = Object.keys(domains).map(d => {
+    const m = DOMAIN_META[d];
+    const info = domains[d];
+    return `
+      <div class="domain-row">
+        <div class="domain-head">
+          <span>${m.icon} ${m.label}</span>
+          <span class="lvl ${info.level}">${LEVEL_TEXT[info.level]} · ${Math.round(info.pct)}%</span>
+        </div>
+        <div class="mini-bar"><div class="${info.level}" style="width:${info.pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  /* ---- Umpan balik naratif ---- */
+  const sorted = Object.keys(domains).sort((a,b) => domains[b].pct - domains[a].pct);
+  const focus = sorted.filter(d => domains[d].level !== 'low');
+  const focusList = focus.length ? focus.slice(0, 4) : sorted.slice(0, 2);
+
+  const feedbackHTML = focusList.map(d => {
+    const m = DOMAIN_META[d];
+    const lv = domains[d].level;
+    const txt = pick(RESPONSES[d][lv]);
+    return `
+      <div class="feedback">
+        <h4>${m.icon} ${m.label} — tingkat ${LEVEL_TEXT[lv].toLowerCase()}</h4>
+        <p>${txt}</p>
+        <div class="theory">Dasar teori: CBT (Beck), DSM-5, Psikologi Positif (Seligman), SDT (Deci & Ryan), Growth Mindset (Dweck), Attachment (Bowlby), Self-Compassion (Neff), dan lainnya.</div>
+      </div>
+    `;
+  }).join('');
+
+  /* ---- Teknik praktis ---- */
+  const techPool = [];
+  focusList.slice(0, 3).forEach(d => {
+    if (TECHNIQUES[d]) techPool.push(...TECHNIQUES[d].map(t => ({...t, domain: d})));
+  });
+  const shuffled = techPool.sort(() => Math.random() - 0.5);
+  const chosen = [];
+  const seen = new Set();
+  for (const t of shuffled){
+    if (!seen.has(t.name)){ seen.add(t.name); chosen.push(t); }
+    if (chosen.length === 3) break;
+  }
+  if (chosen.length < 3){
+    [...TECHNIQUES.mood, ...TECHNIQUES.sleep].forEach(t => {
+      if (chosen.length < 3 && !seen.has(t.name)){ seen.add(t.name); chosen.push(t); }
+    });
+  }
+
+  const techHTML = chosen.map(t => `
+    <div class="tech">
+      <b>🧩 ${t.name}</b>
+      <span>${t.desc}</span>
+    </div>
+  `).join('');
+
+  /* ---- Penutup ---- */
+  const closingText = pick(CLOSING[overallLevel]);
+  const followList = FOLLOWUP[overallLevel].map(f => `<li>${f}</li>`).join('');
+
+  /* ---- Rakit ---- */
+  screenEl.innerHTML = `
+    <div class="card">
+      ${printHeaderHTML}
+
+      <h2 class="title">Hasil Analisis Konselingmu</h2>
+      <p class="lead" style="margin-bottom:18px">Berikut pembacaan atas jawaban-jawabanmu, disertai dasar teori dan langkah praktis yang bisa dilakukan.</p>
+
+      <div class="result-meta">
+        👤 <b>${escapeHTML(studentData.nama)}</b>
+        ${studentData.kelas ? ' • ' + escapeHTML(studentData.kelas) : ''}
+        ${studentData.sekolah ? ' • ' + escapeHTML(studentData.sekolah) : ''}
+        &nbsp;|&nbsp; 🗓️ ${tanggal} pukul ${jam}
+      </div>
+
+      ${crisisHTML}
+      ${summaryHTML}
+
+      <div class="section-title">Profil per Area</div>
+      ${barsHTML}
+
+      <div class="section-title">Yang Perlu Kamu Tahu</div>
+      ${feedbackHTML}
+
+      <div class="section-title">Langkah Kecil yang Bisa Dicoba Minggu Ini</div>
+      ${techHTML}
+
+      <div class="section-title">Catatan Penutup</div>
+      <div class="feedback">
+        <p>${closingText}</p>
+      </div>
+
+      <div class="section-title">Rekomendasi Tindak Lanjut</div>
+      <ol class="plan">${followList}</ol>
+
+      <div class="disclaimer">
+        <b>Disclaimer:</b> Hasil ini dihasilkan dari skrining mandiri berbasis instrumen yang terinspirasi
+        PHQ-9, GAD-7, dan DASS, serta tidak merupakan diagnosis klinis. Diagnosis hanya dapat ditegakkan
+        oleh psikolog atau psikiater melalui wawancara dan asesmen menyeluruh. Jika kamu merasa tidak aman,
+        segera hubungi layanan darurat <b>119 ext. 8</b> atau <b>112</b>.
+        <br><br>
+        <b>Dicetak pada:</b> ${tanggal}, pukul ${jam} WIB.
+      </div>
+
+      <div class="nav-row" style="margin-top:24px">
+        <button class="btn print" onclick="cetakPDF()">🖨️ Cetak / Simpan PDF</button>
+        <button class="btn" onclick="startQuiz()">🔄 Isi Ulang</button>
+        <button class="btn ghost" onclick="renderStart()">🏠 Halaman Awal</button>
+      </div>
+    </div>
+  `;
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* =====================================================================
+   11. CETAK / SIMPAN PDF
+   ===================================================================== */
+function cetakPDF(){
+  // Update judul dokumen agar nama file PDF berisi nama murid
+  const originalTitle = document.title;
+  document.title = `Hasil-Konseling_${studentData.nama.replace(/\s+/g,'-')}`;
+
+  // Beri jeda singkat agar judul ter-apply sebelum dialog print muncul
+  setTimeout(() => {
+    window.print();
+    // Kembalikan judul setelah dialog ditutup
+    setTimeout(() => { document.title = originalTitle; }, 500);
+  }, 100);
+}
+
+/* =====================================================================
+   12. INISIALISASI
+   ===================================================================== */
+renderStart();
+</script>
+</body>
+</html>
